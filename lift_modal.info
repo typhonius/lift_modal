@@ -1,0 +1,6 @@
+name = Lift Modal
+description = Provides a modal window with all customer data in
+package = Acquia Lift
+core = 7.x
+dependencies[] = acquia_lift
+dependencies[] = acquia_lift_api

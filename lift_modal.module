@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * Implements hook_page_build().
+ */
+function lift_modal_page_build(&$page) {
+
+  // In-place editing is only supported on the front-end.
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
+  $id = $_COOKIE['tc_ptid'];
+  $lib = libraries_load('acquia-lift-rest');
+  $api = new acquia_lift_api_visitor_query();
+  $api->setIdentity($id, 'tracking');
+  $api->addRequest(array('personTables' => 'person,identifiers'));
+  $result = $api->execute();
+
+  if ($result->code == 200) {
+    dpm($result);
+    $person = $result->data['person'];
+    $identifiers = $result->data['identifiers'];
+    $email = '';
+    $grav_url = '';
+    foreach ($identifiers as $identifier) {
+      if ($identifier['identifier'] != $person['primaryIdentifier']) {
+        $email = $identifier['identifier'];
+        if (isset($email)) {
+          $grav_url = "https://www.gravatar.com/avatar/" . md5( strtolower( trim( $email ) ) ) . "?d=mm" . "&s=100x100";
+        }
+      }
+    }
+    drupal_add_js(array('lift_modal' => array(
+      'id' => $person['primaryIdentifier'],
+      'first' => $person['firstTouch'],
+      'last' => $person['lastTouch'],
+      'engagement' => $person['engagementScore'],
+      'email' => $email,
+      'image' => $grav_url,
+    )), 'setting');
+  }
+
+  $page['footer']['lift_modal'] = array(
+    '#attached' => array(
+      'library' => array(array('lift_modal', 'modal')),
+    ),
+      // 'container' => array(
+      //   '#markup' => theme('lift_modal'),
+      // ),
+  );
+}
+
+
+
+/**
+ * Implements hook_library().
+ */
+function lift_modal_library() {
+  $path = drupal_get_path('module', 'lift_modal');
+
+  $libraries['modal'] = array(
+    'title' => 'Adds the Lift modal files.',
+    'version' => VERSION,
+    'js' => array(
+      $path . '/js/lift_modal.js' => array(
+        'type' => 'file',
+        'scope' => 'header'
+      ),
+    ),
+    'css' => array(
+      $path . '/css/lift_modal.css' => array(),
+    ),
+    // 'dependencies' => array(
+    //   array('acquia_lift', 'acquia_lift.v2_agent_api'),
+    // ),
+  );
+
+  return $libraries;
+}
