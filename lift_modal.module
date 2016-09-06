@@ -18,7 +18,6 @@ function lift_modal_page_build(&$page) {
   $result = $api->execute();
 
   if ($result->code == 200) {
-    dpm($result);
     $person = $result->data['person'];
     $identifiers = $result->data['identifiers'];
     $email = '';
@@ -32,23 +31,20 @@ function lift_modal_page_build(&$page) {
       }
     }
     drupal_add_js(array('lift_modal' => array(
-      'id' => $person['primaryIdentifier'],
+      //'id' => $person['primaryIdentifier'],
+      'id' => $id,
       'first' => $person['firstTouch'],
       'last' => $person['lastTouch'],
       'engagement' => $person['engagementScore'],
       'email' => $email,
       'image' => $grav_url,
+      'persona' => $person['persona'],
+      'debug' => $result,
     )), 'setting');
   }
 
-  $page['footer']['lift_modal'] = array(
-    '#attached' => array(
-      'library' => array(array('lift_modal', 'modal')),
-    ),
-      // 'container' => array(
-      //   '#markup' => theme('lift_modal'),
-      // ),
-  );
+  drupal_add_library('lift_modal', 'modal');
+
 }
 
 
@@ -71,9 +67,9 @@ function lift_modal_library() {
     'css' => array(
       $path . '/css/lift_modal.css' => array(),
     ),
-    // 'dependencies' => array(
-    //   array('acquia_lift', 'acquia_lift.v2_agent_api'),
-    // ),
+    'dependencies' => array(
+      array('acquia_lift', 'acquia_lift.v2_agent_api'),
+    ),
   );
 
   return $libraries;
