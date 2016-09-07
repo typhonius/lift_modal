@@ -17,37 +17,43 @@ function lift_modal_page_build(&$page) {
   $api->addRequest(array('personTables' => 'person,identifiers'));
   $result = $api->execute();
 
+  $grav_url = "https://www.gravatar.com/avatar/" . md5('nothing@example.com') . "?d=mm" . "&s=100x100";
+  $settings = array('lift_modal' => array(
+    'first' => date('c'),
+    'last' => date('c'),
+    'engagement' => 1,
+    'image' => $grav_url,
+    'debug' => $result,
+  ));
+
+
   if ($result->code == 200) {
+
     $person = $result->data['person'];
+    $settings['lift_modal']['engagement'] = $person['engagementScore'] + 1;
+    $settings['lift_modal']['first'] = $person['firstTouch'];
+    $settings['lift_modal']['last'] = $person['lastTouch'];
+
     $identifiers = $result->data['identifiers'];
-    $email = '';
-    $grav_url = '';
+
     foreach ($identifiers as $identifier) {
-      if ($identifier['identifier'] != $person['primaryIdentifier']) {
-        $email = $identifier['identifier'];
-        if (isset($email)) {
-          $grav_url = "https://www.gravatar.com/avatar/" . md5( strtolower( trim( $email ) ) ) . "?d=mm" . "&s=100x100";
+      if ($identifier['identifier'] != $person['primaryIdentifier'] && strpos($identifier['identifier'], '@') !== false) {
+        $settings['lift_modal']['email'] = $identifier['identifier'];
+        if (isset($settings['lift_modal']['email'])) {
+          $settings['lift_modal']['grav_url'] = "https://www.gravatar.com/avatar/" . md5(strtolower(trim($settings['lift_modal']['email']))) . "?d=mm" . "&s=100x100";
+          continue;
         }
       }
+      elseif ($identifier['identifier'] != $person['primaryIdentifier'] && strpos($identifier['identifier'], ' ') !== false) {
+        $settings['lift_modal']['name'] = $identifier['identifier'];
+        continue;
+      }
     }
-    drupal_add_js(array('lift_modal' => array(
-      //'id' => $person['primaryIdentifier'],
-      'id' => $id,
-      'first' => $person['firstTouch'],
-      'last' => $person['lastTouch'],
-      'engagement' => $person['engagementScore'],
-      'email' => $email,
-      'image' => $grav_url,
-      'persona' => $person['persona'],
-      'debug' => $result,
-    )), 'setting');
   }
 
+  drupal_add_js($settings, 'setting');
   drupal_add_library('lift_modal', 'modal');
-
 }
-
-
 
 /**
  * Implements hook_library().
