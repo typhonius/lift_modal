@@ -26,21 +26,23 @@ function lift_modal_page_build(&$page) {
     'debug' => $result,
   ));
 
-
   if ($result->code == 200) {
 
     $person = $result->data['person'];
     $settings['lift_modal']['engagement'] = $person['engagementScore'] + 1;
     $settings['lift_modal']['first'] = $person['firstTouch'];
     $settings['lift_modal']['last'] = $person['lastTouch'];
+    $settings['lift_modal']['persona'] = $person['persona'];
 
     $identifiers = $result->data['identifiers'];
 
     foreach ($identifiers as $identifier) {
+      // personIdentifierTypeId = 1 (email)
+      // personIdentifierTypeId = 2 (Cookie ID)
       if ($identifier['identifier'] != $person['primaryIdentifier'] && strpos($identifier['identifier'], '@') !== false) {
         $settings['lift_modal']['email'] = $identifier['identifier'];
         if (isset($settings['lift_modal']['email'])) {
-          $settings['lift_modal']['grav_url'] = "https://www.gravatar.com/avatar/" . md5(strtolower(trim($settings['lift_modal']['email']))) . "?d=mm" . "&s=100x100";
+          $settings['lift_modal']['image'] = "https://www.gravatar.com/avatar/" . md5(strtolower(trim($settings['lift_modal']['email']))) . "?d=mm" . "&s=100x100";
           continue;
         }
       }

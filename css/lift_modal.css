@@ -1,13 +1,16 @@
-.lift-modal {
+#lift-modal-container {
   position: fixed;
   z-index: 10000;
   right: 20px;
-  top: -200px;
+  top: -140px;
   border-radius: 10px;
-  min-height: 300px;
   background-color: #fefefe;
   margin: 15% auto;
   padding: 20px;
   border: 1px solid #888;
   min-width: 300px;
+}
+
+.lift-modal .hide {
+  display: none;
 }
